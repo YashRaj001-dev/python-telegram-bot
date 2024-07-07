@@ -1,0 +1,65 @@
+pip install python-telegram-bot
+import logging
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+import random
+
+# Enable logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Define the start command handler
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('Hello! I am your stake mines prediction bot. Use /predict to get a prediction.')
+
+# Define the predict command handler
+def predict(update: Update, context: CallbackContext) -> None:
+    grid_size = 5  # Example grid size
+    num_mines = 3  # Example number of mines
+
+    # Simple prediction logic (random for demonstration purposes)
+    prediction = generate_prediction(grid_size, num_mines)
+    
+    update.message.reply_text(f'Prediction for safe cells: {prediction}')
+
+def generate_prediction(grid_size: int, num_mines: int) -> list:
+    total_cells = grid_size * grid_size
+    safe_cells = total_cells - num_mines
+    
+    # Randomly select safe cells for demonstration
+    safe_cells_prediction = random.sample(range(total_cells), safe_cells)
+    
+    # Convert to grid positions (e.g., (row, col))
+    grid_prediction = [(cell // grid_size, cell % grid_size) for cell in safe_cells_prediction]
+    
+    return grid_prediction
+
+# Error handler
+def error(update: Update, context: CallbackContext) -> None:
+    logger.warning(f'Update "{update}" caused error "{context.error}"')
+
+def main() -> None:
+    # Create the Updater and pass it your bot's token
+    updater = Updater("YOUR_TOKEN_HERE")
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+    # Register command handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("predict", predict))
+
+    # Register error handler
+    dispatcher.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT, SIGTERM, or SIGABRT
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
